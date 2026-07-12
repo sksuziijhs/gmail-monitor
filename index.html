@@ -691,6 +691,20 @@
                     return;
                 }
 
+                if (listRes.status === 403) {
+                    updateStatusBadge(false);
+                    showError('❌ الصلاحية غير مفعّلة (403) - يجب تفعيل صلاحية Gmail في Google Cloud Console وإعادة تسجيل الدخول');
+                    console.error('403 من Gmail API:', await listRes.text());
+                    return;
+                }
+
+                if (!listRes.ok) {
+                    updateStatusBadge(false);
+                    showError('❌ خطأ من Gmail API: ' + listRes.status);
+                    console.error('خطأ Gmail API:', await listRes.text());
+                    return;
+                }
+
                 const listData = await listRes.json();
                 const messages = listData.messages || [];
                 const isFirstRun = seenMessageIds.size === 0;
