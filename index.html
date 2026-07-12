@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gmail Monitor - مراقبة بريدك</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4CAF50">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1E1E2E 0%, #2D2D44 100%);
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* رأس التطبيق */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-top: 20px;
+        }
+
+        .header-title {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .header-subtitle {
+            font-size: 14px;
+            color: #aaa;
+        }
+
+        /* حالة الاتصال */
+        .status-badge {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-top: 12px;
+        }
+
+        .status-badge.connected {
+            background: #4CAF50;
+            color: #fff;
+        }
+
+        .status-badge.disconnected {
+            background: #FF6B6B;
+            color: #fff;
+        }
+
+        /* البطاقات */
+        .card {
+            background: #2D2D44;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* نموذج الدخول */
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #4CAF50;
+        }
+
+        .form-input {
+            background: #1E1E2E;
+            border: 2px solid #444;
+            border-radius: 8px;
+            padding: 12px;
+            color: #fff;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .form-input:focus {
+            border-color: #4CAF50;
+            box-shadow: 0 0 8px rgba(76, 175, 80, 0.3);
+        }
+
+        .form-input::placeholder {
+            color: #888;
+        }
+
+        /* الأزرار */
+        .btn {
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #4CAF50;
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+        .btn-primary:disabled {
+            background: #888;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .btn-secondary {
+            background: #444;
+            color: #fff;
+        }
+
+        .btn-secondary:hover {
+            background: #555;
+        }
+
+        .btn-danger {
+            background: #FF6B6B;
+            color: #fff;
+        }
+
+        .btn-danger:hover {
+            background: #ff5252;
+        }
+
+        /* الإعدادات */
+        .setting-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #444;
+        }
+
+        .setting-row:last-child {
+            border-bottom: none;
+        }
+
+        .setting-label {
+            font-size: 14px;
+            color: #eee;
+        }
+
+        .toggle-switch {
+            width: 50px;
+            height: 28px;
+            background: #444;
+            border-radius: 14px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: #4CAF50;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background: #fff;
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch.active::after {
+            left: 24px;
+        }
+
+        /* قائمة الرسائل */
+        .email-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .email-item {
+            background: #1E1E2E;
+            border-radius: 8px;
+            padding: 12px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .email-from {
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+
+        .email-subject {
+            font-size: 13px;
+            color: #aaa;
+        }
+
+        .email-time {
+            font-size: 11px;
+            color: #777;
+            margin-top: 6px;
+        }
+
+        /* الإشعارات */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4CAF50;
+            color: #fff;
+            padding: 16px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease-out;
+            z-index: 1000;
+            max-width: 90%;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* المعلومات */
+        .info-box {
+            background: #3A3A5C;
+            border-left: 4px solid #FFA500;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 12px;
+            color: #ccc;
+            line-height: 1.6;
+            margin-top: 12px;
+        }
+
+        /* حالة التحميل */
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #4CAF50;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* الشاشات */
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* الفاصل */
+        .divider {
+            height: 1px;
+            background: #444;
+            margin: 16px 0;
+        }
+
+        /* اختبار الإشعارات */
+        .test-section {
+            text-align: center;
+        }
+
+        .test-button {
+            width: 100%;
+        }
+
+        /* الشاشة الرئيسية */
+        .main-screen {
+            flex: 1;
+        }
+
+        /* القائمة السفلية */
+        .bottom-menu {
+            display: flex;
+            gap: 8px;
+            margin-top: auto;
+        }
+
+        .bottom-menu .btn {
+            flex: 1;
+            font-size: 12px;
+            padding: 10px;
+        }
+
+        /* الأيقونات */
+        .icon {
+            display: inline-block;
+            font-size: 20px;
+        }
+
+        /* الخطأ */
+        .error {
+            background: #FF6B6B;
+            color: #fff;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            font-size: 13px;
+        }
+
+        /* النجاح */
+        .success {
+            background: #4CAF50;
+            color: #fff;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+            font-size: 13px;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #2D2D44;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #4CAF50;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <!-- شاشة الدخول -->
+        <div id="loginScreen" class="screen active">
+            <div class="header">
+                <div class="header-title">📧 Gmail Monitor</div>
+                <div class="header-subtitle">مراقبة بريدك الإلكتروني بسهولة</div>
+            </div>
+
+            <div class="card">
+                <form id="loginForm" class="login-form">
+                    <div class="form-group">
+                        <label class="form-label">البريد الإلكتروني</label>
+                        <input 
+                            type="email" 
+                            id="emailInput" 
+                            class="form-input"
+                            placeholder="example@gmail.com"
+                            required
+                        >
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">كلمة المرور (اختيارية)</label>
+                        <input 
+                            type="password" 
+                            id="passwordInput" 
+                            class="form-input"
+                            placeholder="اترك فارغاً للمتابعة"
+                        >
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <span>🔓</span>
+                        <span>دخول</span>
+                    </button>
+                </form>
+
+                <div class="info-box" style="margin-top: 16px;">
+                    ✅ البيانات محفوظة بأمان على هاتفك<br>
+                    ✅ بدون سيرفر وسيط<br>
+                    ✅ إشعارات فورية
+                </div>
+            </div>
+        </div>
+
+        <!-- الشاشة الرئيسية -->
+        <div id="mainScreen" class="screen">
+            <div class="header">
+                <div class="header-title">📧 Gmail Monitor</div>
+                <div id="userEmail" class="header-subtitle"></div>
+                <div id="statusBadge" class="status-badge disconnected">⚠️ غير متصل</div>
+            </div>
+
+            <!-- الحالة -->
+            <div class="card">
+                <div class="card-title">🔔 حالة المراقبة</div>
+                <div class="setting-row">
+                    <span class="setting-label">الإشعارات</span>
+                    <div id="notificationToggle" class="toggle-switch active" onclick="toggleNotifications()"></div>
+                </div>
+            </div>
+
+            <!-- الإعدادات -->
+            <div class="card">
+                <div class="card-title">⚙️ الإعدادات</div>
+                <div class="setting-row">
+                    <span class="setting-label">الصوت</span>
+                    <div id="soundToggle" class="toggle-switch active" onclick="toggleSetting('sound', this)"></div>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-label">الاهتزاز</span>
+                    <div id="vibrationToggle" class="toggle-switch active" onclick="toggleSetting('vibration', this)"></div>
+                </div>
+                <div class="setting-row">
+                    <span class="setting-label">الإضاءة</span>
+                    <div id="lightToggle" class="toggle-switch active" onclick="toggleSetting('light', this)"></div>
+                </div>
+            </div>
+
+            <!-- اختبار -->
+            <div class="card test-section">
+                <button class="btn btn-primary test-button" onclick="testNotification()">
+                    <span>🧪</span>
+                    <span>اختبر الإشعارات</span>
+                </button>
+            </div>
+
+            <!-- آخر الرسائل -->
+            <div class="card">
+                <div class="card-title">📬 آخر البريد</div>
+                <div id="emailList" class="email-list">
+                    <p style="text-align: center; color: #888; font-size: 13px;">لا توجد رسائل حتى الآن</p>
+                </div>
+            </div>
+
+            <!-- المعلومات -->
+            <div class="info-box">
+                📋 المعلومات<br>
+                • سيتم فحص بريدك كل 30 ثانية<br>
+                • الإشعارات الفورية عند وصول بريد جديد<br>
+                • خصوصية عالية - البيانات محلية فقط
+            </div>
+
+            <!-- الأزرار -->
+            <div class="bottom-menu">
+                <button class="btn btn-secondary" onclick="showSettings()">
+                    <span>⚙️</span>
+                    <span>إعدادات</span>
+                </button>
+                <button class="btn btn-danger" onclick="logout()">
+                    <span>🚪</span>
+                    <span>خروج</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging.js"></script>
+
+    <script>
+        // إعداد Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDrXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", // غيّر هذا
+            projectId: "gmail-monitor-xxxxx",              // غيّر هذا
+            messagingSenderId: "1234567890",               // غيّر هذا
+            appId: "1:1234567890:web:abcdef123456"        // غيّر هذا
+        };
+
+        // تهيئة Firebase
+        firebase.initializeApp(firebaseConfig);
+        const messaging = firebase.messaging();
+
+        // متغيرات التطبيق
+        let isLoggedIn = false;
+        let currentUser = '';
+        let settings = {
+            notificationsEnabled: true,
+            sound: true,
+            vibration: true,
+            light: true
+        };
+
+        let emails = [];
+
+        // تحميل البيانات المحفوظة
+        function loadSettings() {
+            const saved = localStorage.getItem('gmailSettings');
+            if (saved) {
+                settings = JSON.parse(saved);
+                updateSettingsUI();
+            }
+
+            const user = localStorage.getItem('currentUser');
+            if (user) {
+                currentUser = user;
+                isLoggedIn = true;
+                showMainScreen();
+            }
+        }
+
+        // حفظ الإعدادات
+        function saveSettings() {
+            localStorage.setItem('gmailSettings', JSON.stringify(settings));
+        }
+
+        // تسجيل الدخول
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('emailInput').value;
+            
+            if (!email) {
+                showError('أدخل بريدك الإلكتروني');
+                return;
+            }
+
+            currentUser = email;
+            isLoggedIn = true;
+            localStorage.setItem('currentUser', email);
+            
+            showSuccess('✅ تم تسجيل الدخول بنجاح!');
+            showMainScreen();
+        });
+
+        // عرض الشاشة الرئيسية
+        function showMainScreen() {
+            document.getElementById('loginScreen').classList.remove('active');
+            document.getElementById('mainScreen').classList.add('active');
+            document.getElementById('userEmail').textContent = currentUser;
+            
+            // طلب إذن الإشعارات
+            requestNotificationPermission();
+            
+            // بدء مراقبة البريد
+            startEmailMonitoring();
+        }
+
+        // طلب إذن الإشعارات
+        async function requestNotificationPermission() {
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    updateStatusBadge(true);
+                    const token = await messaging.getToken();
+                    console.log('Token:', token);
+                }
+            } catch (error) {
+                console.error('خطأ في طلب الإذن:', error);
+            }
+        }
+
+        // تحديث حالة الاتصال
+        function updateStatusBadge(connected) {
+            const badge = document.getElementById('statusBadge');
+            if (connected) {
+                badge.textContent = '✅ متصل';
+                badge.classList.remove('disconnected');
+                badge.classList.add('connected');
+            } else {
+                badge.textContent = '⚠️ غير متصل';
+                badge.classList.remove('connected');
+                badge.classList.add('disconnected');
+            }
+        }
+
+        // بدء مراقبة البريد
+        function startEmailMonitoring() {
+            // محاكاة استقبال رسائل جديدة
+            setInterval(checkNewEmails, 30000); // كل 30 ثانية
+            
+            // فحص أولي
+            checkNewEmails();
+        }
+
+        // فحص البريد الجديد
+        function checkNewEmails() {
+            // هنا يتم الاتصال بـ Gmail API
+            // في الوقت الحالي، هذا مثال
+            if (settings.notificationsEnabled) {
+                // كود الاتصال بـ Gmail سيكون هنا
+            }
+        }
+
+        // إرسال إشعار
+        function sendNotification(title, body) {
+            if (!settings.notificationsEnabled) return;
+
+            // اهتزاز
+            if (settings.vibration && navigator.vibrate) {
+                navigator.vibrate([200, 100, 200]);
+            }
+
+            // صوت
+            if (settings.sound) {
+                playNotificationSound();
+            }
+
+            // إشعار المتصفح
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification(title, {
+                    body: body,
+                    badge: '📧',
+                    icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%234CAF50" width="100" height="100"/><text x="50" y="70" font-size="60" text-anchor="middle" fill="white">📧</text></svg>'
+                });
+            }
+
+            // إضاءة الشاشة
+            if (settings.light) {
+                // طلب الشاشة المضاءة
+                if (document.hidden) {
+                    document.body.style.backgroundColor = '#4CAF50';
+                    setTimeout(() => {
+                        document.body.style.backgroundColor = '';
+                    }, 500);
+                }
+            }
+        }
+
+        // تشغيل صوت
+        function playNotificationSound() {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = 800;
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+        }
+
+        // اختبار الإشعارات
+        function testNotification() {
+            sendNotification('🧪 اختبار الإشعار', 'جميع الإعدادات مفعلة ✅');
+            showSuccess('تم إرسال إشعار اختبار!');
+        }
+
+        // تفعيل/تعطيل الإشعارات
+        function toggleNotifications() {
+            settings.notificationsEnabled = !settings.notificationsEnabled;
+            saveSettings();
+            document.getElementById('notificationToggle').classList.toggle('active');
+        }
+
+        // تبديل الإعداد
+        function toggleSetting(key, element) {
+            const settingKey = key === 'sound' ? 'sound' : 
+                              key === 'vibration' ? 'vibration' : 'light';
+            settings[settingKey] = !settings[settingKey];
+            saveSettings();
+            element.classList.toggle('active');
+        }
+
+        // تحديث واجهة الإعدادات
+        function updateSettingsUI() {
+            document.getElementById('soundToggle').classList.toggle('active', settings.sound);
+            document.getElementById('vibrationToggle').classList.toggle('active', settings.vibration);
+            document.getElementById('lightToggle').classList.toggle('active', settings.light);
+            document.getElementById('notificationToggle').classList.toggle('active', settings.notificationsEnabled);
+        }
+
+        // عرض الرسائل
+        function displayEmails() {
+            const list = document.getElementById('emailList');
+            if (emails.length === 0) {
+                list.innerHTML = '<p style="text-align: center; color: #888; font-size: 13px;">لا توجد رسائل حتى الآن</p>';
+            } else {
+                list.innerHTML = emails.map(email => `
+                    <div class="email-item">
+                        <div class="email-from">👤 ${email.from}</div>
+                        <div class="email-subject">📌 ${email.subject}</div>
+                        <div class="email-time">⏰ ${email.time}</div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // الخروج
+        function logout() {
+            if (confirm('هل تريد تسجيل الخروج؟')) {
+                isLoggedIn = false;
+                currentUser = '';
+                emails = [];
+                localStorage.removeItem('currentUser');
+                
+                document.getElementById('mainScreen').classList.remove('active');
+                document.getElementById('loginScreen').classList.add('active');
+                document.getElementById('emailInput').value = '';
+                document.getElementById('passwordInput').value = '';
+                
+                showSuccess('تم تسجيل الخروج');
+            }
+        }
+
+        // عرض الإعدادات
+        function showSettings() {
+            alert('الإعدادات متاحة في البطاقة ⚙️ أعلاه');
+        }
+
+        // عرض الخطأ
+        function showError(message) {
+            const div = document.createElement('div');
+            div.className = 'error';
+            div.textContent = message;
+            document.querySelector('.card').insertBefore(div, document.querySelector('.card').firstChild);
+            setTimeout(() => div.remove(), 3000);
+        }
+
+        // عرض النجاح
+        function showSuccess(message) {
+            const div = document.createElement('div');
+            div.className = 'success';
+            div.textContent = message;
+            document.body.appendChild(div);
+            setTimeout(() => div.remove(), 3000);
+        }
+
+        // استقبال الإشعارات من Firebase
+        messaging.onMessage((payload) => {
+            console.log('رسالة جديدة:', payload);
+            const { title, body } = payload.notification;
+            sendNotification(title, body);
+            
+            // إضافة للقائمة
+            const email = {
+                from: title,
+                subject: body,
+                time: new Date().toLocaleTimeString('ar-SA')
+            };
+            emails.unshift(email);
+            if (emails.length > 10) emails.pop();
+            displayEmails();
+        });
+
+        // تحميل عند فتح الصفحة
+        window.addEventListener('load', loadSettings);
+
+        // تسجيل Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(err => 
+                console.log('Service Worker registration failed:', err)
+            );
+        }
+    </script>
+</body>
+</html>
