@@ -410,33 +410,17 @@
             </div>
 
             <div class="card">
-                <form id="loginForm" class="login-form">
-                    <div class="form-group">
-                        <label class="form-label">البريد الإلكتروني</label>
-                        <input 
-                            type="email" 
-                            id="emailInput" 
-                            class="form-input"
-                            placeholder="example@gmail.com"
-                            required
-                        >
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">كلمة المرور (اختيارية)</label>
-                        <input 
-                            type="password" 
-                            id="passwordInput" 
-                            class="form-input"
-                            placeholder="اترك فارغاً للمتابعة"
-                        >
-                    </div>
-
-                    <button type="submit" class="btn btn-primary">
-                        <span>🔓</span>
-                        <span>دخول</span>
-                    </button>
-                </form>
+                <div style="text-align:center; margin-bottom:16px; color:#aaa; font-size:13px;">
+                    سجّل دخولك بحساب Google لمراقبة بريدك الفعلي
+                </div>
+                <button id="googleSignInBtn" class="btn btn-primary" style="width:100%; background:#fff; color:#333;">
+                    <span>🔵</span>
+                    <span>تسجيل الدخول بواسطة Google</span>
+                </button>
+                <div id="loginLoading" style="display:none; text-align:center; margin-top:12px; color:#4CAF50;">
+                    جاري تسجيل الدخول...
+                </div>
+            </div>
 
                 <div class="info-box" style="margin-top: 16px;">
                     ✅ البيانات محفوظة بأمان على هاتفك<br>
@@ -518,6 +502,9 @@
         </div>
     </div>
 
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
     <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging.js"></script>
@@ -540,9 +527,16 @@
             console.warn('Firebase Messaging غير متاح، سيتم استخدام إشعارات المتصفح فقط:', error);
         }
 
+        // بيانات Google OAuth
+        const GOOGLE_CLIENT_ID = '469648902163-f22jdcu8udvftncl56233b5cf6j7e282.apps.googleusercontent.com';
+        const GMAIL_SCOPE = 'https://www.googleapis.com/auth/gmail.readonly';
+
         // متغيرات التطبيق
         let isLoggedIn = false;
         let currentUser = '';
+        let accessToken = null;
+        let tokenClient = null;
+        let seenMessageIds = new Set();
         let settings = {
             notificationsEnabled: true,
             sound: true,
@@ -559,13 +553,7 @@
                 settings = JSON.parse(saved);
                 updateSettingsUI();
             }
-
-            const user = localStorage.getItem('currentUser');
-            if (user) {
-                currentUser = user;
-                isLoggedIn = true;
-                showMainScreen();
-            }
+            initGoogleSignIn();
         }
 
         // حفظ الإعدادات
@@ -573,29 +561,61 @@
             localStorage.setItem('gmailSettings', JSON.stringify(settings));
         }
 
-        // تسجيل الدخول
-        document.getElementById('loginForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const email = document.getElementById('emailInput').value;
-            
-            if (!email) {
-                showError('أدخل بريدك الإلكتروني');
-                return;
-            }
+        // تهيئة تسجيل دخول Google
+        function initGoogleSignIn() {
+            function trySetup() {
+                if (!window.google || !google.accounts || !google.accounts.oauth2) {
+                    // مكتبة Google لم تُحمّل بعد، حاول مرة أخرى بعد قليل
+                    setTimeout(trySetup, 300);
+                    return;
+                }
 
-            currentUser = email;
-            isLoggedIn = true;
-            localStorage.setItem('currentUser', email);
-            
-            showSuccess('✅ تم تسجيل الدخول بنجاح!');
-            showMainScreen();
-        });
+                tokenClient = google.accounts.oauth2.initTokenClient({
+                    client_id: GOOGLE_CLIENT_ID,
+                    scope: GMAIL_SCOPE,
+                    callback: async (response) => {
+                        document.getElementById('loginLoading').style.display = 'none';
+                        if (response.error) {
+                            showError('فشل تسجيل الدخول: ' + response.error);
+                            return;
+                        }
+                        accessToken = response.access_token;
+                        await onSignedIn();
+                    },
+                });
+
+                document.getElementById('googleSignInBtn').addEventListener('click', () => {
+                    document.getElementById('loginLoading').style.display = 'block';
+                    tokenClient.requestAccessToken({ prompt: 'consent' });
+                });
+            }
+            trySetup();
+        }
+
+        // بعد نجاح تسجيل الدخول
+        async function onSignedIn() {
+            try {
+                const profile = await fetch(
+                    'https://www.googleapis.com/gmail/v1/users/me/profile',
+                    { headers: { Authorization: `Bearer ${accessToken}` } }
+                ).then(r => r.json());
+
+                currentUser = profile.emailAddress || 'حسابك';
+                isLoggedIn = true;
+                localStorage.setItem('currentUser', currentUser);
+                showSuccess('✅ تم تسجيل الدخول بنجاح!');
+                showMainScreen();
+            } catch (error) {
+                showError('تعذر الاتصال بـ Gmail: ' + error.message);
+            }
+        }
 
         // عرض الشاشة الرئيسية
         function showMainScreen() {
             document.getElementById('loginScreen').classList.remove('active');
             document.getElementById('mainScreen').classList.add('active');
             document.getElementById('userEmail').textContent = currentUser;
+            updateStatusBadge(true);
             
             // طلب إذن الإشعارات
             requestNotificationPermission();
@@ -647,12 +667,59 @@
             checkNewEmails();
         }
 
-        // فحص البريد الجديد
-        function checkNewEmails() {
-            // هنا يتم الاتصال بـ Gmail API
-            // في الوقت الحالي، هذا مثال
-            if (settings.notificationsEnabled) {
-                // كود الاتصال بـ Gmail سيكون هنا
+        // فحص البريد الجديد (حقيقي عبر Gmail API)
+        async function checkNewEmails() {
+            if (!settings.notificationsEnabled || !accessToken) return;
+
+            try {
+                const listRes = await fetch(
+                    'https://www.googleapis.com/gmail/v1/users/me/messages?q=is:unread&maxResults=5',
+                    { headers: { Authorization: `Bearer ${accessToken}` } }
+                );
+
+                if (listRes.status === 401) {
+                    // انتهت صلاحية التوكن - أعد تسجيل الدخول بصمت
+                    updateStatusBadge(false);
+                    if (tokenClient) tokenClient.requestAccessToken({ prompt: '' });
+                    return;
+                }
+
+                const listData = await listRes.json();
+                const messages = listData.messages || [];
+                const isFirstRun = seenMessageIds.size === 0;
+
+                for (const msg of messages) {
+                    if (seenMessageIds.has(msg.id)) continue;
+                    seenMessageIds.add(msg.id);
+
+                    const detailRes = await fetch(
+                        `https://www.googleapis.com/gmail/v1/users/me/messages/${msg.id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject`,
+                        { headers: { Authorization: `Bearer ${accessToken}` } }
+                    );
+                    const detail = await detailRes.json();
+                    const headers = detail.payload?.headers || [];
+                    const from = headers.find(h => h.name === 'From')?.value || 'مجهول';
+                    const subject = headers.find(h => h.name === 'Subject')?.value || '(بدون موضوع)';
+
+                    const emailEntry = {
+                        from: from,
+                        subject: subject,
+                        time: new Date().toLocaleTimeString('ar-SA')
+                    };
+                    emails.unshift(emailEntry);
+                    if (emails.length > 10) emails.pop();
+
+                    // لا نرسل إشعارات عن كل الرسائل القديمة عند أول فحص
+                    if (!isFirstRun) {
+                        sendNotification('📧 ' + from, subject);
+                    }
+                }
+
+                if (messages.length > 0) displayEmails();
+                updateStatusBadge(true);
+            } catch (error) {
+                console.error('خطأ في فحص البريد:', error);
+                updateStatusBadge(false);
             }
         }
 
@@ -757,15 +824,18 @@
         // الخروج
         function logout() {
             if (confirm('هل تريد تسجيل الخروج؟')) {
+                if (accessToken && window.google && google.accounts) {
+                    google.accounts.oauth2.revoke(accessToken, () => {});
+                }
                 isLoggedIn = false;
                 currentUser = '';
+                accessToken = null;
+                seenMessageIds = new Set();
                 emails = [];
                 localStorage.removeItem('currentUser');
                 
                 document.getElementById('mainScreen').classList.remove('active');
                 document.getElementById('loginScreen').classList.add('active');
-                document.getElementById('emailInput').value = '';
-                document.getElementById('passwordInput').value = '';
                 
                 showSuccess('تم تسجيل الخروج');
             }
