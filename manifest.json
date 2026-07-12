@@ -2,8 +2,8 @@
   "name": "Gmail Monitor - مراقبة بريدك",
   "short_name": "Gmail Monitor",
   "description": "تطبيق لمراقبة بريدك الإلكتروني مع إشعارات فورية",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "/gmail-monitor/",
+  "scope": "/gmail-monitor/",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#1E1E2E",
@@ -36,7 +36,7 @@
       "name": "فحص البريد",
       "short_name": "فحص",
       "description": "فحص البريد الجديد",
-      "url": "/?action=check",
+      "url": "/gmail-monitor/?action=check",
       "icons": [
         {
           "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect fill='%234CAF50' width='96' height='96'/><text x='48' y='70' font-size='70' text-anchor='middle' fill='white' font-family='Arial'>🔍</text></svg>",
@@ -49,7 +49,7 @@
       "name": "الإعدادات",
       "short_name": "إعدادات",
       "description": "فتح إعدادات التطبيق",
-      "url": "/?action=settings",
+      "url": "/gmail-monitor/?action=settings",
       "icons": [
         {
           "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'><rect fill='%234CAF50' width='96' height='96'/><text x='48' y='70' font-size='70' text-anchor='middle' fill='white' font-family='Arial'>⚙️</text></svg>",
