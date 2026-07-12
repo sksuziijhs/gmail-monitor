@@ -525,15 +525,20 @@
     <script>
         // إعداد Firebase
         const firebaseConfig = {
-    apiKey: "AIzaSyAFVzokDsSuTXZ0noUHbQ0RLoztq-puSKs",
-    projectId: "monitor-5c793",
-    messagingSenderId: "325088462246",
-    appId: "1:325088462246:web:f66dafbeb45aebfa59fb67"
-};
+            apiKey: "AIzaSyAFVzokDsSuTXZ0noUHbQ0RLoztq-puSKs",
+            projectId: "monitor-5c793",
+            messagingSenderId: "325088462246",
+            appId: "1:325088462246:web:f66dafbeb45aebfa59fb67"
+        };
 
-        // تهيئة Firebase
-        firebase.initializeApp(firebaseConfig);
-        const messaging = firebase.messaging();
+        // تهيئة Firebase (بأمان - حتى لو فشلت، باقي التطبيق يشتغل)
+        let messaging = null;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            messaging = firebase.messaging();
+        } catch (error) {
+            console.warn('Firebase Messaging غير متاح، سيتم استخدام إشعارات المتصفح فقط:', error);
+        }
 
         // متغيرات التطبيق
         let isLoggedIn = false;
@@ -605,8 +610,14 @@
                 const permission = await Notification.requestPermission();
                 if (permission === 'granted') {
                     updateStatusBadge(true);
-                    const token = await messaging.getToken();
-                    console.log('Token:', token);
+                    if (messaging) {
+                        try {
+                            const token = await messaging.getToken();
+                            console.log('Token:', token);
+                        } catch (tokenError) {
+                            console.warn('تعذر الحصول على توكن Firebase:', tokenError);
+                        }
+                    }
                 }
             } catch (error) {
                 console.error('خطأ في طلب الإذن:', error);
@@ -783,7 +794,8 @@
             setTimeout(() => div.remove(), 3000);
         }
 
-        // استقبال الإشعارات من Firebase
+        // استقبال الإشعارات من Firebase (فقط إذا كان متاحاً)
+        if (messaging) {
         messaging.onMessage((payload) => {
             console.log('رسالة جديدة:', payload);
             const { title, body } = payload.notification;
@@ -799,6 +811,7 @@
             if (emails.length > 10) emails.pop();
             displayEmails();
         });
+        }
 
         // تحميل عند فتح الصفحة
         window.addEventListener('load', loadSettings);
