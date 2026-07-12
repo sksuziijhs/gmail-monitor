@@ -665,6 +665,13 @@
             
             // فحص أولي
             checkNewEmails();
+
+            // فحص فوري عند رجوع المستخدم للصفحة (بعد إغلاقها/تصغيرها)
+            document.addEventListener('visibilitychange', () => {
+                if (!document.hidden && isLoggedIn) {
+                    checkNewEmails();
+                }
+            });
         }
 
         // فحص البريد الجديد (حقيقي عبر Gmail API)
