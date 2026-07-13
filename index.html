@@ -5,8 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gmail Monitor - مراقبة بريدك</title>
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#4CAF50">
+    <meta name="theme-color" content="#14141f">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg-1: #14141f;
+            --bg-2: #1c1c2e;
+            --card: #20212f;
+            --card-border: #2f3042;
+            --accent: #34d399;
+            --accent-dark: #10b981;
+            --accent-soft: rgba(52, 211, 153, 0.14);
+            --danger: #f87171;
+            --danger-soft: rgba(248, 113, 113, 0.14);
+            --warn: #fbbf24;
+            --text: #f3f4f6;
+            --text-dim: #9497a8;
+            --text-faint: #6b6e82;
+            --radius: 16px;
+            --radius-sm: 10px;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -14,19 +35,21 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #1E1E2E 0%, #2D2D44 100%);
-            color: #fff;
+            font-family: 'Tajawal', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: radial-gradient(1200px 800px at 20% -10%, #23243a 0%, var(--bg-1) 55%), var(--bg-1);
+            background-attachment: fixed;
+            color: var(--text);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            -webkit-font-smoothing: antialiased;
         }
 
         .container {
             max-width: 600px;
             width: 100%;
             margin: 0 auto;
-            padding: 20px;
+            padding: 24px 18px 32px;
             flex: 1;
             display: flex;
             flex-direction: column;
@@ -35,61 +58,99 @@
         /* رأس التطبيق */
         .header {
             text-align: center;
-            margin-bottom: 30px;
-            padding-top: 20px;
+            margin-bottom: 26px;
+            padding-top: 12px;
         }
 
         .header-title {
-            font-size: 32px;
-            font-weight: bold;
-            margin-bottom: 8px;
+            font-size: 30px;
+            font-weight: 900;
+            margin-bottom: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
+            letter-spacing: -0.3px;
         }
 
         .header-subtitle {
-            font-size: 14px;
-            color: #aaa;
+            font-size: 13.5px;
+            color: var(--text-dim);
+            font-weight: 500;
         }
 
         /* حالة الاتصال */
         .status-badge {
-            display: inline-block;
-            padding: 8px 16px;
-            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 18px;
+            border-radius: 999px;
             font-size: 12px;
-            font-weight: 600;
-            margin-top: 12px;
+            font-weight: 700;
+            margin-top: 14px;
+            border: 1px solid transparent;
         }
 
         .status-badge.connected {
-            background: #4CAF50;
-            color: #fff;
+            background: var(--accent-soft);
+            color: var(--accent);
+            border-color: rgba(52, 211, 153, 0.3);
+        }
+
+        .status-badge.connected::before {
+            content: '';
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--accent);
+            box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.25);
+            animation: pulse-dot 2s ease-in-out infinite;
         }
 
         .status-badge.disconnected {
-            background: #FF6B6B;
-            color: #fff;
+            background: var(--danger-soft);
+            color: var(--danger);
+            border-color: rgba(248, 113, 113, 0.3);
+        }
+
+        .status-badge.disconnected::before {
+            content: '';
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: var(--danger);
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.25); }
+            50% { box-shadow: 0 0 0 6px rgba(52, 211, 153, 0.12); }
         }
 
         /* البطاقات */
         .card {
-            background: #2D2D44;
-            border-radius: 12px;
+            background: linear-gradient(180deg, var(--card) 0%, #1b1c29 100%);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius);
             padding: 20px;
-            margin-bottom: 20px;
-            border-left: 4px solid #4CAF50;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.22);
+            animation: fadeUp 0.35s ease both;
+        }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .card-title {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 16px;
+            font-size: 15px;
+            font-weight: 700;
+            margin-bottom: 14px;
             display: flex;
             align-items: center;
             gap: 8px;
+            color: var(--text);
         }
 
         /* نموذج الدخول */
@@ -107,77 +168,89 @@
 
         .form-label {
             font-size: 12px;
-            font-weight: 600;
-            color: #4CAF50;
+            font-weight: 700;
+            color: var(--accent);
         }
 
         .form-input {
-            background: #1E1E2E;
-            border: 2px solid #444;
-            border-radius: 8px;
+            background: var(--bg-1);
+            border: 1.5px solid var(--card-border);
+            border-radius: var(--radius-sm);
             padding: 12px;
-            color: #fff;
+            color: var(--text);
             font-size: 14px;
+            font-family: inherit;
             outline: none;
-            transition: all 0.3s;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
 
         .form-input:focus {
-            border-color: #4CAF50;
-            box-shadow: 0 0 8px rgba(76, 175, 80, 0.3);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.15);
         }
 
         .form-input::placeholder {
-            color: #888;
+            color: var(--text-faint);
         }
 
         /* الأزرار */
         .btn {
-            padding: 12px;
+            padding: 13px 16px;
             border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
+            border-radius: var(--radius-sm);
+            font-size: 14.5px;
+            font-weight: 700;
+            font-family: inherit;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, filter 0.15s ease;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
         }
 
+        .btn:active {
+            transform: scale(0.98);
+        }
+
         .btn-primary {
-            background: #4CAF50;
-            color: #fff;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+            color: #06251b;
+            box-shadow: 0 6px 16px rgba(52, 211, 153, 0.25);
         }
 
         .btn-primary:hover {
-            background: #45a049;
-            transform: translateY(-2px);
+            filter: brightness(1.06);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(52, 211, 153, 0.32);
         }
 
         .btn-primary:disabled {
-            background: #888;
+            background: #4b4d5c;
+            color: #9497a8;
             cursor: not-allowed;
-            opacity: 0.6;
+            opacity: 0.7;
+            box-shadow: none;
         }
 
         .btn-secondary {
-            background: #444;
-            color: #fff;
+            background: #2a2b3d;
+            color: var(--text);
+            border: 1px solid var(--card-border);
         }
 
         .btn-secondary:hover {
-            background: #555;
+            background: #33344a;
         }
 
         .btn-danger {
-            background: #FF6B6B;
-            color: #fff;
+            background: var(--danger-soft);
+            color: var(--danger);
+            border: 1px solid rgba(248, 113, 113, 0.3);
         }
 
         .btn-danger:hover {
-            background: #ff5252;
+            background: rgba(248, 113, 113, 0.22);
         }
 
         /* الإعدادات */
@@ -185,8 +258,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px solid #444;
+            padding: 13px 0;
+            border-bottom: 1px solid var(--card-border);
         }
 
         .setting-row:last-child {
@@ -195,70 +268,106 @@
 
         .setting-label {
             font-size: 14px;
-            color: #eee;
+            color: #e5e6ec;
+            font-weight: 500;
         }
 
         .toggle-switch {
-            width: 50px;
-            height: 28px;
-            background: #444;
-            border-radius: 14px;
+            width: 46px;
+            height: 26px;
+            background: #3a3b4f;
+            border-radius: 999px;
             position: relative;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: background 0.25s ease;
+            flex-shrink: 0;
         }
 
         .toggle-switch.active {
-            background: #4CAF50;
+            background: var(--accent);
         }
 
         .toggle-switch::after {
             content: '';
             position: absolute;
-            width: 24px;
-            height: 24px;
+            width: 20px;
+            height: 20px;
             background: #fff;
             border-radius: 50%;
-            top: 2px;
-            left: 2px;
-            transition: all 0.3s;
+            top: 3px;
+            left: 3px;
+            transition: left 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.35);
         }
 
         .toggle-switch.active::after {
-            left: 24px;
+            left: 23px;
         }
 
         /* قائمة الرسائل */
         .email-list {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
             max-height: 400px;
             overflow-y: auto;
         }
 
         .email-item {
-            background: #1E1E2E;
-            border-radius: 8px;
+            background: var(--bg-1);
+            border: 1px solid var(--card-border);
+            border-radius: var(--radius-sm);
             padding: 12px;
-            border-left: 4px solid #4CAF50;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            transition: border-color 0.2s;
+        }
+
+        .email-item:hover {
+            border-color: rgba(52, 211, 153, 0.35);
+        }
+
+        .email-avatar {
+            flex-shrink: 0;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent) 0%, #059669 100%);
+            color: #06251b;
+            font-weight: 800;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .email-body {
+            flex: 1;
+            min-width: 0;
         }
 
         .email-from {
-            font-weight: 600;
+            font-weight: 700;
             font-size: 13px;
-            margin-bottom: 4px;
+            margin-bottom: 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .email-subject {
-            font-size: 13px;
-            color: #aaa;
+            font-size: 12.5px;
+            color: var(--text-dim);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .email-time {
-            font-size: 11px;
-            color: #777;
-            margin-top: 6px;
+            font-size: 10.5px;
+            color: var(--text-faint);
+            margin-top: 5px;
         }
 
         /* الإشعارات */
@@ -266,36 +375,41 @@
             position: fixed;
             top: 20px;
             right: 20px;
-            background: #4CAF50;
-            color: #fff;
-            padding: 16px 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            left: 20px;
+            margin: 0 auto;
+            max-width: 400px;
+            background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+            color: #06251b;
+            padding: 14px 18px;
+            border-radius: var(--radius-sm);
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
             animation: slideIn 0.3s ease-out;
             z-index: 1000;
-            max-width: 90%;
+            font-weight: 700;
+            font-size: 13.5px;
+            text-align: center;
         }
 
         @keyframes slideIn {
             from {
-                transform: translateX(400px);
+                transform: translateY(-30px);
                 opacity: 0;
             }
             to {
-                transform: translateX(0);
+                transform: translateY(0);
                 opacity: 1;
             }
         }
 
         /* المعلومات */
         .info-box {
-            background: #3A3A5C;
-            border-left: 4px solid #FFA500;
-            border-radius: 8px;
-            padding: 12px;
+            background: rgba(251, 191, 36, 0.08);
+            border: 1px solid rgba(251, 191, 36, 0.25);
+            border-radius: var(--radius-sm);
+            padding: 13px;
             font-size: 12px;
-            color: #ccc;
-            line-height: 1.6;
+            color: #d9d4c4;
+            line-height: 1.8;
             margin-top: 12px;
         }
 
@@ -304,10 +418,10 @@
             display: inline-block;
             width: 16px;
             height: 16px;
-            border: 2px solid #4CAF50;
+            border: 2px solid var(--accent);
             border-top-color: transparent;
             border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+            animation: spin 0.7s linear infinite;
         }
 
         @keyframes spin {
@@ -322,12 +436,18 @@
         .screen.active {
             display: flex;
             flex-direction: column;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         /* الفاصل */
         .divider {
             height: 1px;
-            background: #444;
+            background: var(--card-border);
             margin: 16px 0;
         }
 
@@ -348,14 +468,15 @@
         /* القائمة السفلية */
         .bottom-menu {
             display: flex;
-            gap: 8px;
+            gap: 10px;
             margin-top: auto;
+            padding-top: 6px;
         }
 
         .bottom-menu .btn {
             flex: 1;
-            font-size: 12px;
-            padding: 10px;
+            font-size: 13px;
+            padding: 12px;
         }
 
         /* الأيقونات */
@@ -366,22 +487,26 @@
 
         /* الخطأ */
         .error {
-            background: #FF6B6B;
-            color: #fff;
-            padding: 12px;
-            border-radius: 8px;
+            background: var(--danger-soft);
+            color: #fecaca;
+            border: 1px solid rgba(248, 113, 113, 0.3);
+            padding: 12px 14px;
+            border-radius: var(--radius-sm);
             margin-bottom: 12px;
             font-size: 13px;
+            font-weight: 500;
         }
 
         /* النجاح */
         .success {
-            background: #4CAF50;
-            color: #fff;
-            padding: 12px;
-            border-radius: 8px;
+            background: var(--accent-soft);
+            color: #a7f3d0;
+            border: 1px solid rgba(52, 211, 153, 0.3);
+            padding: 12px 14px;
+            border-radius: var(--radius-sm);
             margin-bottom: 12px;
             font-size: 13px;
+            font-weight: 500;
         }
 
         /* Scrollbar */
@@ -390,14 +515,15 @@
         }
 
         ::-webkit-scrollbar-track {
-            background: #2D2D44;
+            background: transparent;
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #4CAF50;
+            background: #3a3b4f;
             border-radius: 3px;
         }
     </style>
+
 </head>
 <body>
     <div class="container">
@@ -409,7 +535,7 @@
                 <div class="header-subtitle">مراقبة بريدك الإلكتروني بسهولة</div>
             </div>
 
-            <div class="card">
+            <div class="card" id="loginCard">
                 <div style="text-align:center; margin-bottom:16px; color:#aaa; font-size:13px;">
                     سجّل دخولك بحساب Google لمراقبة بريدك الفعلي
                 </div>
@@ -417,9 +543,14 @@
                     <span>🔵</span>
                     <span>تسجيل الدخول بواسطة Google</span>
                 </button>
-                <div id="loginLoading" style="display:none; text-align:center; margin-top:12px; color:#4CAF50;">
+                <div id="loginLoading" style="display:none; text-align:center; margin-top:12px; color:#34d399;">
                     جاري تسجيل الدخول...
                 </div>
+            </div>
+
+            <div class="card" id="autoLoginCard" style="display:none; text-align:center;">
+                <div class="loading" style="width:28px; height:28px; margin:0 auto 14px;"></div>
+                <div style="color:#ccc; font-size:14px;">جاري إعادة تسجيل دخولك تلقائياً...</div>
             </div>
 
                 <div class="info-box" style="margin-top: 16px;">
@@ -427,7 +558,6 @@
                     ✅ بدون سيرفر وسيط<br>
                     ✅ إشعارات فورية
                 </div>
-            </div>
         </div>
 
         <!-- الشاشة الرئيسية -->
@@ -435,7 +565,7 @@
             <div class="header">
                 <div class="header-title">📧 Gmail Monitor</div>
                 <div id="userEmail" class="header-subtitle"></div>
-                <div id="statusBadge" class="status-badge disconnected">⚠️ غير متصل</div>
+                <div id="statusBadge" class="status-badge disconnected">غير متصل</div>
             </div>
 
             <!-- الحالة -->
@@ -575,8 +705,13 @@
                     scope: GMAIL_SCOPE,
                     callback: async (response) => {
                         document.getElementById('loginLoading').style.display = 'none';
+                        document.getElementById('autoLoginCard').style.display = 'none';
+                        document.getElementById('loginCard').style.display = 'block';
                         if (response.error) {
-                            showError('فشل تسجيل الدخول: ' + response.error);
+                            // فشل الدخول الصامت (طبيعي لو أول مرة أو انتهت الجلسة) - اعرض زر الدخول العادي
+                            if (response.error !== 'immediate_failed' && response.error !== 'access_denied') {
+                                showError('فشل تسجيل الدخول: ' + response.error);
+                            }
                             return;
                         }
                         accessToken = response.access_token;
@@ -588,6 +723,14 @@
                     document.getElementById('loginLoading').style.display = 'block';
                     tokenClient.requestAccessToken({ prompt: 'consent' });
                 });
+
+                // محاولة دخول تلقائي صامت لو سجّل المستخدم دخوله سابقاً
+                const previousUser = localStorage.getItem('currentUser');
+                if (previousUser) {
+                    document.getElementById('loginCard').style.display = 'none';
+                    document.getElementById('autoLoginCard').style.display = 'block';
+                    tokenClient.requestAccessToken({ prompt: '' });
+                }
             }
             trySetup();
         }
@@ -648,11 +791,11 @@
         function updateStatusBadge(connected) {
             const badge = document.getElementById('statusBadge');
             if (connected) {
-                badge.textContent = '✅ متصل';
+                badge.textContent = 'متصل';
                 badge.classList.remove('disconnected');
                 badge.classList.add('connected');
             } else {
-                badge.textContent = '⚠️ غير متصل';
+                badge.textContent = 'غير متصل';
                 badge.classList.remove('connected');
                 badge.classList.add('disconnected');
             }
@@ -771,7 +914,7 @@
             if (settings.light) {
                 // طلب الشاشة المضاءة
                 if (document.hidden) {
-                    document.body.style.backgroundColor = '#4CAF50';
+                    document.body.style.backgroundColor = '#34d399';
                     setTimeout(() => {
                         document.body.style.backgroundColor = '';
                     }, 500);
@@ -830,15 +973,22 @@
         function displayEmails() {
             const list = document.getElementById('emailList');
             if (emails.length === 0) {
-                list.innerHTML = '<p style="text-align: center; color: #888; font-size: 13px;">لا توجد رسائل حتى الآن</p>';
+                list.innerHTML = '<p style="text-align: center; color: var(--text-faint); font-size: 13px; padding: 8px 0;">لا توجد رسائل حتى الآن</p>';
             } else {
-                list.innerHTML = emails.map(email => `
+                list.innerHTML = emails.map(email => {
+                    const cleanFrom = (email.from || '؟').replace(/<.*?>/g, '').trim();
+                    const initial = cleanFrom.charAt(0).toUpperCase() || '؟';
+                    return `
                     <div class="email-item">
-                        <div class="email-from">👤 ${email.from}</div>
-                        <div class="email-subject">📌 ${email.subject}</div>
-                        <div class="email-time">⏰ ${email.time}</div>
+                        <div class="email-avatar">${initial}</div>
+                        <div class="email-body">
+                            <div class="email-from">${cleanFrom}</div>
+                            <div class="email-subject">${email.subject}</div>
+                            <div class="email-time">${email.time}</div>
+                        </div>
                     </div>
-                `).join('');
+                `;
+                }).join('');
             }
         }
 
