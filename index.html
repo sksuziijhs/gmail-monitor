@@ -823,7 +823,7 @@
 
             try {
                 const listRes = await fetch(
-                    'https://www.googleapis.com/gmail/v1/users/me/messages?q=is:unread&maxResults=5',
+                    'https://www.googleapis.com/gmail/v1/users/me/messages?q=is:unread&maxResults=15',
                     { headers: { Authorization: `Bearer ${accessToken}` } }
                 );
 
@@ -871,7 +871,7 @@
                         time: new Date().toLocaleTimeString('ar-SA')
                     };
                     emails.unshift(emailEntry);
-                    if (emails.length > 10) emails.pop();
+                    if (emails.length > 20) emails.pop();
 
                     // لا نرسل إشعارات عن كل الرسائل القديمة عند أول فحص
                     if (!isFirstRun) {
